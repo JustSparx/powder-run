@@ -1,0 +1,119 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/boarder.gd" id="2_boarder"]
+[ext_resource type="Script" path="res://scripts/chase_camera.gd" id="3_camera"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.32, 0.52, 0.78, 1)
+sky_horizon_color = Color(0.78, 0.86, 0.94, 1)
+ground_bottom_color = Color(0.85, 0.89, 0.94, 1)
+ground_horizon_color = Color(0.78, 0.86, 0.94, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="env"]
+background_mode = 2
+sky = SubResource("sky")
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.82, 0.88, 0.95, 1)
+fog_density = 0.004
+
+[sub_resource type="StandardMaterial3D" id="snow_mat"]
+albedo_color = Color(0.94, 0.96, 1, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="slope_mesh"]
+material = SubResource("snow_mat")
+size = Vector3(40, 1, 600)
+
+[sub_resource type="BoxShape3D" id="slope_shape"]
+size = Vector3(40, 1, 600)
+
+[sub_resource type="CapsuleShape3D" id="boarder_shape"]
+radius = 0.35
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="jacket_mat"]
+albedo_color = Color(1, 0.48, 0.24, 1)
+
+[sub_resource type="CapsuleMesh" id="boarder_mesh"]
+material = SubResource("jacket_mat")
+radius = 0.35
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="board_mat"]
+albedo_color = Color(0.12, 0.14, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="board_mesh"]
+material = SubResource("board_mat")
+size = Vector3(0.3, 0.05, 1.6)
+
+[sub_resource type="LabelSettings" id="speed_font"]
+font_size = 36
+outline_size = 6
+outline_color = Color(0.1, 0.15, 0.25, 1)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.383022, 0.321394, 0, 0.642788, 0.766044, -0.5, -0.663414, 0.55667, 0, 20, 0)
+shadow_enabled = true
+directional_shadow_max_distance = 150.0
+
+[node name="Slope" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, -77.6457, -289.778)
+
+[node name="Mesh" type="MeshInstance3D" parent="Slope"]
+mesh = SubResource("slope_mesh")
+
+[node name="Collision" type="CollisionShape3D" parent="Slope"]
+shape = SubResource("slope_shape")
+
+[node name="Boarder" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, -5)
+script = ExtResource("2_boarder")
+
+[node name="Collision" type="CollisionShape3D" parent="Boarder"]
+shape = SubResource("boarder_shape")
+
+[node name="Body" type="MeshInstance3D" parent="Boarder"]
+mesh = SubResource("boarder_mesh")
+
+[node name="Board" type="MeshInstance3D" parent="Boarder"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.82, 0)
+mesh = SubResource("board_mesh")
+
+[node name="ChaseCamera" type="Camera3D" parent="." node_paths=PackedStringArray("target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 3)
+current = true
+fov = 70.0
+script = ExtResource("3_camera")
+target = NodePath("../Boarder")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Speed" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 16.0
+offset_right = 324.0
+offset_bottom = 66.0
+text = "0 km/h"
+label_settings = SubResource("speed_font")
+
+[node name="Hint" type="Label" parent="HUD"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -48.0
+offset_right = 724.0
+offset_bottom = -16.0
+grow_vertical = 0
+text = "A/D carve   S brake   Space jump   R reset"
